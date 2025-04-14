@@ -1,17 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Veenhoop.Models
 {
-    public class Gebruikers
+    public class Docenten
     {
-        [Key]
         public int Id { get; set; }
 
-        public required int StudentenNummer { get; set; }
-
         public required string Voornaam { get; set; }
-        
+
         public string? Tussenvoegsel { get; set; }
 
         public required string Achternaam { get; set; }
@@ -28,8 +24,5 @@ namespace Veenhoop.Models
         public required string Email { get; set; }
 
         public required string Wachtwoord { get; set; }
-
-        [ForeignKey("Klassen")]
-        public int KlasId { get; set; }
     }
 }
