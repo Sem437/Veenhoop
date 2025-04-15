@@ -1,0 +1,18 @@
+.navbar {
+    position: sticky;
+    top: 0;
+    background-color: #1e1e1e;
+    color: white;
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    z-index: 999;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  a {
+    color: white;
+    text-decoration: none;    
+  }
