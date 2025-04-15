@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Veenhoop.Data;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -16,6 +16,19 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+//Cors
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy
+                          .AllowAnyHeader()
+                          //.AllowAnyMethod()
+                          .AllowAnyOrigin();
+                      });
+});
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -23,6 +36,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+//Use cors
+app.UseCors(MyAllowSpecificOrigins);  //("AllowAll"); //(MyAllowSpecificOrigins);
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
