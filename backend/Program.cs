@@ -14,20 +14,22 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
-
-//Cors
+//add corse
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          policy
-                          .AllowAnyHeader()
-                          //.AllowAnyMethod()
-                          .AllowAnyOrigin();
-                      });
+        policy =>
+        {
+            policy
+            .AllowAnyHeader()
+            //.AllowAnyMethod()
+            .AllowAnyOrigin();
+        });
 });
+
+var app = builder.Build();
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
