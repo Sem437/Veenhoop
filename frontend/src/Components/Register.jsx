@@ -11,22 +11,21 @@ const Register = () => {
     wachtwoord: '',
     stad: '',
     adres: '',
-    postcode: ''
+    postcode: '',
+    klasId: 1,
+    studentenNummer: 0
   });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => 
+  {
     e.preventDefault();
 
     try {
-      const response = await fetch('https://localhost:7083/api/Auth/Register', {
+      const response = await fetch('https://localhost:7083/api/Gebruikers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,36 +33,50 @@ const Register = () => {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { message: text };
+      }
 
-      if (response.ok) {
-        console.log('Registratie succesvol:', data);
+      if (response.ok) 
+      {
+        window.location.reload();
         alert('Registratie gelukt!');
-      } else {
+      } 
+      else 
+      {
         console.error('Registratie mislukt:', data);
         alert('Er ging iets mis bij registratie.');
       }
-    } catch (error) {
+    }
+     
+    catch (error) 
+    {
       console.error('Fout bij registratie:', error);
-      alert('Netwerkfout of server down');
+      alert('Fout bij registratie:', error);
     }
   };
 
   return (
     <div className="register-container">
       <h2>Registreer</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="voornaam" placeholder="Voornaam" value={formData.voornaam} onChange={handleChange} required />
-        <input type="text" name="tussenvoegsel" placeholder="Tussenvoegsel" value={formData.tussenvoegsel} onChange={handleChange} />
-        <input type="text" name="achternaam" placeholder="Achternaam" value={formData.achternaam} onChange={handleChange} required />
-        <input type="date" name="geboortedatum" placeholder="Geboortedatum" value={formData.geboortedatum} onChange={handleChange} required />
-        <input type="text" name="stad" placeholder="Stad" value={formData.stad} onChange={handleChange} required />
-        <input type="text" name="adres" placeholder="Adres" value={formData.adres} onChange={handleChange} required />
-        <input type="text" name="postcode" placeholder="Postcode" value={formData.postcode} onChange={handleChange} required />
-        <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-        <input type="password" name="wachtwoord" placeholder="Wachtwoord" value={formData.wachtwoord} onChange={handleChange} required />
-        <input type="submit" value="Registreer" />
-      </form>
+      <div>
+        <form onSubmit={handleSubmit} className="register-form">
+          <input type="text" name="voornaam" placeholder="Voornaam" value={formData.voornaam} onChange={handleChange} required />
+          <input type="text" name="tussenvoegsel" placeholder="Tussenvoegsel" value={formData.tussenvoegsel} onChange={handleChange} />
+          <input type="text" name="achternaam" placeholder="Achternaam" value={formData.achternaam} onChange={handleChange} required />
+          <input type="date" name="geboortedatum" placeholder="Geboortedatum" value={formData.geboortedatum} onChange={handleChange} required />
+          <input type="text" name="stad" placeholder="Stad" value={formData.stad} onChange={handleChange} required />
+          <input type="text" name="adres" placeholder="Adres" value={formData.adres} onChange={handleChange} required />
+          <input type="text" name="postcode" placeholder="Postcode" value={formData.postcode} onChange={handleChange} required />
+          <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
+          <input type="password" name="wachtwoord" placeholder="Wachtwoord" value={formData.wachtwoord} onChange={handleChange} required />        
+          <input type="submit" value="Registreer" />
+        </form>
+      </div>
     </div>
   );
 };
