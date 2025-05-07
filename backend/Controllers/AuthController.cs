@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Veenhoop.Data;
 using Veenhoop.Models;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Veenhoop.Controllers
 {
@@ -44,8 +47,26 @@ namespace Veenhoop.Controllers
             {
                 return Unauthorized("Invalid password.");
             }
+            
 
-            return Ok("Inlog gelukt");
+            //Jwt
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes("B9$uR2!fZ1@vL7#xQ3^pM5&nH8*wA0dE");
+
+            var tokenParameters = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] {
+                new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
+                new Claim(ClaimTypes.Email, gebruiker.Email)
+                }),
+                Expires = DateTime.UtcNow.AddHours(24),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenParameters);
+            var jwt = tokenHandler.WriteToken(token);
+
+            return Ok(new { token = jwt});
         }
 
         private bool CheckPassword(string wachtwoord, string hashedWachtwoord)

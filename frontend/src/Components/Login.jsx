@@ -20,7 +20,7 @@ const Login = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(formData),
-            });
+            });                        
 
             const text = await response.text();
             let data;
@@ -31,7 +31,8 @@ const Login = () => {
             }
 
             if (response.ok) {
-                alert('Inloggen gelukt!');
+                localStorage.setItem('token', data.token);
+                window.location.href = '/';
             } else {
                 console.error('Inloggen mislukt:', data);
                 alert('Er ging iets mis bij inloggen.');
