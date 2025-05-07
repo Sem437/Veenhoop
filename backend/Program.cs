@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
         {
             policy
             .AllowAnyHeader()
-            //.AllowAnyMethod()
+            .AllowAnyMethod()
             .AllowAnyOrigin();
         });
 });
@@ -41,6 +41,8 @@ if (app.Environment.IsDevelopment())
 //Use cors
 app.UseCors(MyAllowSpecificOrigins);  //("AllowAll"); //(MyAllowSpecificOrigins);
 app.UseHttpsRedirection();
+
+app.UseCors(MyAllowSpecificOrigins);   
 
 app.UseAuthorization();
 

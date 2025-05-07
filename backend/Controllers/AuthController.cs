@@ -1,7 +1,8 @@
-﻿using System.Security.Cryptography;
-using System.Text;
+﻿using System.Text;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Veenhoop.Data;
@@ -20,61 +21,42 @@ namespace Veenhoop.Controllers
             _context = context;
         }
 
-        // POST: api/Auth/Register
-        [HttpPost("Register")]
-        public async Task<IActionResult> Registeren([FromBody] Gebruikers model)
+        //POST: api/Auth/Login
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (!ModelState.IsValid)
+            if (request == null)
             {
-                return BadRequest();
+                return BadRequest("Invalid login request.");
             }
 
-            var EmailCheck = await _context.Gebruikers
-                .FirstOrDefaultAsync(x => x.Email == model.Email);
+            var gebruiker = await _context.Gebruikers
+                .FirstOrDefaultAsync(g => g.Email == request.Email);
 
-            if (EmailCheck != null)
+            if (gebruiker == null)
             {
-                return BadRequest("Email bestaat al");
+                return NotFound("User not found.");
             }
 
-            string hashedPassword = HashPassword(model.Wachtwoord);
+            bool wachtwoordCheck = CheckPassword(request.Password, gebruiker.Wachtwoord);
 
-            var user = new Gebruikers
+            if(!wachtwoordCheck)
             {
-                StudentenNummer = 0,
-                Voornaam = model.Voornaam,
-                Tussenvoegsel = model.Tussenvoegsel,
-                Achternaam = model.Achternaam,
-                GeboorteDatum = model.GeboorteDatum,
-                Stad = model.Stad,
-                Adres = model.Adres,
-                Postcode = model.Postcode,
-                Email = model.Email,
-                Wachtwoord = hashedPassword,
-                KlasId = 1
-            };
-        
-            var Result = await _context.Gebruikers.AddAsync(user);
-
-            if(Result == null)
-            {
-                return BadRequest("Er is iets fout gegaan");
+                return Unauthorized("Invalid password.");
             }
 
-            return Ok("Account is aangemaakt");
+            return Ok("Inlog gelukt");
         }
 
-
-        // Hashes a password using SHA256
-        private string HashPassword(string password)
+        private bool CheckPassword(string wachtwoord, string hashedWachtwoord)
         {
             using (var sha256 = SHA256.Create())
             {
-                byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(hashedBytes);
+                byte[] InputByte = sha256.ComputeHash(Encoding.UTF8.GetBytes(wachtwoord));
+                string hashedInput = Convert.ToBase64String(InputByte);
+
+                return hashedInput == hashedWachtwoord;
             }
         }
-
-
     }
 }
