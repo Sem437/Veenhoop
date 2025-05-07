@@ -9,9 +9,9 @@ function App() {
   return (
     <Router>
       <Navbar />
-      <div style={{ padding: '2rem' }}>
+      <div>
         <Routes>
-          <Route path="/" element={<div>Home</div>} />
+          <Route path="/" />
           <Route path="/Login"    element={<Login />} />
           <Route path="/Register" element={<Register />} />
         </Routes>
