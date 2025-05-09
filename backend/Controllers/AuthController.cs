@@ -57,6 +57,7 @@ namespace Veenhoop.Controllers
             {
                 Subject = new ClaimsIdentity(new[] {
                 new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
+                new Claim(ClaimTypes.Name, gebruiker.Voornaam, gebruiker.Tussenvoegsel, gebruiker.Achternaam), 
                 new Claim(ClaimTypes.Email, gebruiker.Email)
                 }),
                 Expires = DateTime.UtcNow.AddHours(24),
