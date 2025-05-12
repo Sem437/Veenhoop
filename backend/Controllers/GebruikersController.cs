@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Veenhoop.Data;
 using Veenhoop.Models;
 
@@ -76,8 +81,24 @@ namespace Veenhoop.Controllers
         // POST: api/Gebruikers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Gebruikers>> PostGebruikers(Gebruikers gebruikers)
+        public async Task<ActionResult<Gebruikers>> PostGebruikers([FromBody] Gebruikers gebruikers)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var EmailCheck = await _context.Gebruikers
+                .FirstOrDefaultAsync(x => x.Email == gebruikers.Email);
+
+            if (EmailCheck != null)
+            {
+                return BadRequest("Email bestaat al");
+            }
+
+            string hashedPassword = HashPassword(gebruikers.Wachtwoord);
+            gebruikers.Wachtwoord = hashedPassword;
+
             _context.Gebruikers.Add(gebruikers);
             await _context.SaveChangesAsync();
 
@@ -94,6 +115,8 @@ namespace Veenhoop.Controllers
                 return NotFound();
             }
 
+     
+
             _context.Gebruikers.Remove(gebruikers);
             await _context.SaveChangesAsync();
 
@@ -103,6 +126,16 @@ namespace Veenhoop.Controllers
         private bool GebruikersExists(int id)
         {
             return _context.Gebruikers.Any(e => e.Id == id);
+        }
+
+        // Hashes a password using SHA256
+        private string HashPassword(string password)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                return Convert.ToBase64String(hashedBytes);
+            }
         }
     }
 }
