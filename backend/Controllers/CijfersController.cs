@@ -32,6 +32,7 @@ namespace Veenhoop.Controllers
         [HttpGet("user/{gebruikersId}")]
         public async Task<ActionResult> GetUserCijfer(int gebruikersId)
         {
+            
             var data = await _context.Cijfers
                 .Join(_context.Gebruikers,
                     cijfer => cijfer.GebruikersId,
@@ -61,6 +62,38 @@ namespace Veenhoop.Controllers
             }
 
             return Ok(data);
+            
+            /*
+            var data = await _context.Cijfers
+                .Join(_context.Toetsen,
+                    cijfer => cijfer.ToetsId,
+                    toest => toest.Id,
+                    (cijfer, toest) => new { cijfer, toest })
+                .Join(_context.Vakken,
+                    ct => ct.toest.VakId,
+                    vak => vak.Id,
+                    (ct, vak) => new { ct.cijfer, ct.toest, vak })
+                .Where(x => x.cijfer.GebruikersId == gebruikersId)
+                .ToListAsync();
+
+            var grouped = data
+                .GroupBy(x => x.vak.VakNaam)
+                .Select(g => new
+                {
+                    Vaknaam = g.Key,
+                    Periode1 = g.Where(x => x.cijfer.Periode == 1).Select(x => (double?)x.cijfer.Cijfer).FirstOrDefault(),
+                    GemPeriode1 = g.Where(x => x.cijfer.Periode == 1).Select(x => (double)x.cijfer.Cijfer).DefaultIfEmpty().Average(),
+                    Periode2 = g.Where(x => x.cijfer.Periode == 2).Select(x => (double?)x.cijfer.Cijfer).FirstOrDefault(),
+                    GemPeriode2 = g.Where(x => x.cijfer.Periode == 2).Select(x => (double)x.cijfer.Cijfer).DefaultIfEmpty().Average(),
+                    Periode3 = g.Where(x => x.cijfer.Periode == 3).Select(x => (double?)x.cijfer.Cijfer).FirstOrDefault(),
+                    GemPeriode3 = g.Where(x => x.cijfer.Periode == 3).Select(x => (double)x.cijfer.Cijfer).DefaultIfEmpty().Average(),
+                    Periode4 = g.Where(x => x.cijfer.Periode == 4).Select(x => (double?)x.cijfer.Cijfer).FirstOrDefault(),
+                    GemPeriode4 = g.Where(x => x.cijfer.Periode == 4).Select(x => (double)x.cijfer.Cijfer).DefaultIfEmpty().Average(),
+                    Gem = g.Select(x => (double)x.cijfer.Cijfer).DefaultIfEmpty().Average()
+                }).ToList();
+
+            return Ok(grouped);
+            */
         }
 
 
