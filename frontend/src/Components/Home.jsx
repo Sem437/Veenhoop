@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import "../css/Home.css";
 
 const parseJwt = (token) => {
   try {
@@ -45,19 +46,38 @@ const Home = () => {
 
   return (
     <div>
-      {data.length > 0 ? (
-        <div>
+      <table>
+        <thead>
+          <tr>
+            <th>Vak</th>
+            <th>Periode 1</th>
+            <th>Gemiddelde periode 1</th>
+            <th>Periode 2</th>
+            <th>Gemiddelde periode 2</th>
+            <th>Periode 3</th>
+            <th>Gemiddelde periode 3</th>
+            <th>Periode 4</th>
+            <th>Gemiddelde periode 4</th>
+            <th>Gemiddelde</th>
+          </tr>      
+        </thead>
+        <tbody>
           {data.map((item, index) => (
-            <div key={index} >
-              <p><strong>Vak:</strong> {item.vakkenNaam}</p>
-              <p><strong>Toets:</strong> {item.toetsNaam}</p>
-              <p><strong>Cijfer:</strong> {item.cijfer}</p>
-            </div>
+            <tr key={index}>
+              <td>{item.vaknaam}</td>
+              <td>{item.periode1}</td>
+              <td>{item.gemPeriode1}</td>
+              <td>{item.periode2}</td>
+              <td>{item.gemPeriode2}</td>
+              <td>{item.periode3}</td>
+              <td>{item.gemPeriode3}</td>
+              <td>{item.periode4}</td>
+              <td>{item.gemPeriode4}</td>
+              <td>{item.gem}</td>
+            </tr>
           ))}
-        </div>
-      ) : (
-        <p>Data wordt geladen...</p>
-      )}
+        </tbody>
+      </table>
     </div>
   );
 };

@@ -31,39 +31,7 @@ namespace Veenhoop.Controllers
         // GET: api/Cijfers/user/5
         [HttpGet("user/{gebruikersId}")]
         public async Task<ActionResult> GetUserCijfer(int gebruikersId)
-        {
-            
-            var data = await _context.Cijfers
-                .Join(_context.Gebruikers,
-                    cijfer => cijfer.GebruikersId,
-                    gebruiker => gebruiker.Id,
-                    (cijfer, gebruiker) => new { cijfer, gebruiker })
-                .Join(_context.Toetsen,
-                    cg => cg.cijfer.ToetsId,
-                    toets => toets.Id,
-                    (cg, toetsen) => new { cg.cijfer, cg.gebruiker, toetsen})
-                .Join(_context.Vakken,
-                cgt => cgt.toetsen.VakId,
-                vak => vak.Id,
-                (cgt, vak) => new
-                {
-                    gebruikersId = cgt.gebruiker.Id,
-                    gebruikersNaam = cgt.gebruiker.Voornaam + " " + cgt.gebruiker.Tussenvoegsel + " " + cgt.gebruiker.Achternaam,
-                    vakkenNaam = vak.VakNaam,
-                    ToetsNaam = cgt.toetsen.Naam,
-                    Cijfer = cgt.cijfer.Cijfer,
-                })
-                .Where(x => x.gebruikersId == gebruikersId)
-                .ToListAsync();
-
-            if (data == null || data.Count == 0)
-            {
-                return NotFound();
-            }
-
-            return Ok(data);
-            
-            /*
+        {                       
             var data = await _context.Cijfers
                 .Join(_context.Toetsen,
                     cijfer => cijfer.ToetsId,
@@ -93,8 +61,34 @@ namespace Veenhoop.Controllers
                 }).ToList();
 
             return Ok(grouped);
-            */
+            
         }
+
+        // POST: api/Cijfers/
+        [HttpPost("klasCijfers/{docentId}")]
+        public IActionResult CijferKlas(int docentId, [FromBody] List<Cijfers> cijfers)
+        {
+            if (cijfers == null || cijfers.Count == 0)
+            {
+                return BadRequest("No data provided.");
+            }
+            foreach (var cijfer in cijfers)
+            {
+                var docentCheck = _context.DocentVakken
+                    .FirstOrDefault(c => c.DocentId == docentId)
+                    .ToString();
+                
+                if(docentCheck == null)
+                {
+                    return BadRequest("Docent not found.");
+                }
+
+                _context.Cijfers.Add(cijfer);
+            }
+            _context.SaveChanges();
+            return Ok(new { message = "Cijfers successfully added." });
+        }
+
 
 
         // GET: api/Cijfers/5
