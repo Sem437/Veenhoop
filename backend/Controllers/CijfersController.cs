@@ -31,37 +31,64 @@ namespace Veenhoop.Controllers
         // GET: api/Cijfers/user/5
         [HttpGet("user/{gebruikersId}")]
         public async Task<ActionResult> GetUserCijfer(int gebruikersId)
-        {
+        {                       
             var data = await _context.Cijfers
-                .Join(_context.Gebruikers,
-                    cijfer => cijfer.GebruikersId,
-                    gebruiker => gebruiker.Id,
-                    (cijfer, gebruiker) => new { cijfer, gebruiker })
                 .Join(_context.Toetsen,
-                    cg => cg.cijfer.ToetsId,
-                    toets => toets.Id,
-                    (cg, toetsen) => new { cg.cijfer, cg.gebruiker, toetsen})
+                    cijfer => cijfer.ToetsId,
+                    toest => toest.Id,
+                    (cijfer, toest) => new { cijfer, toest })
                 .Join(_context.Vakken,
-                cgt => cgt.toetsen.VakId,
-                vak => vak.Id,
-                (cgt, vak) => new
-                {
-                    gebruikersId = cgt.gebruiker.Id,
-                    gebruikersNaam = cgt.gebruiker.Voornaam + " " + cgt.gebruiker.Tussenvoegsel + " " + cgt.gebruiker.Achternaam,
-                    vakkenNaam = vak.VakNaam,
-                    ToetsNaam = cgt.toetsen.Naam,
-                    Cijfer = cgt.cijfer.Cijfer,
-                })
-                .Where(x => x.gebruikersId == gebruikersId)
+                    ct => ct.toest.VakId,
+                    vak => vak.Id,
+                    (ct, vak) => new { ct.cijfer, ct.toest, vak })
+                .Where(x => x.cijfer.GebruikersId == gebruikersId)
                 .ToListAsync();
 
-            if (data == null || data.Count == 0)
-            {
-                return NotFound();
-            }
+            var grouped = data
+                .GroupBy(x => x.vak.VakNaam)
+                .Select(g => new
+                {
+                    Vaknaam = g.Key,
+                    Periode1 = g.Where(x => x.cijfer.Periode == 1).Select(x => (double?)x.cijfer.Cijfer).FirstOrDefault(),
+                    GemPeriode1 = g.Where(x => x.cijfer.Periode == 1).Select(x => (double)x.cijfer.Cijfer).DefaultIfEmpty().Average(),
+                    Periode2 = g.Where(x => x.cijfer.Periode == 2).Select(x => (double?)x.cijfer.Cijfer).FirstOrDefault(),
+                    GemPeriode2 = g.Where(x => x.cijfer.Periode == 2).Select(x => (double)x.cijfer.Cijfer).DefaultIfEmpty().Average(),
+                    Periode3 = g.Where(x => x.cijfer.Periode == 3).Select(x => (double?)x.cijfer.Cijfer).FirstOrDefault(),
+                    GemPeriode3 = g.Where(x => x.cijfer.Periode == 3).Select(x => (double)x.cijfer.Cijfer).DefaultIfEmpty().Average(),
+                    Periode4 = g.Where(x => x.cijfer.Periode == 4).Select(x => (double?)x.cijfer.Cijfer).FirstOrDefault(),
+                    GemPeriode4 = g.Where(x => x.cijfer.Periode == 4).Select(x => (double)x.cijfer.Cijfer).DefaultIfEmpty().Average(),
+                    Gem = g.Select(x => (double)x.cijfer.Cijfer).DefaultIfEmpty().Average()
+                }).ToList();
 
-            return Ok(data);
+            return Ok(grouped);
+            
         }
+
+        // POST: api/Cijfers/
+        [HttpPost("klasCijfers/{docentId}")]
+        public IActionResult CijferKlas(int docentId, [FromBody] List<Cijfers> cijfers)
+        {
+            if (cijfers == null || cijfers.Count == 0)
+            {
+                return BadRequest("No data provided.");
+            }
+            foreach (var cijfer in cijfers)
+            {
+                var docentCheck = _context.DocentVakken
+                    .FirstOrDefault(c => c.DocentId == docentId)
+                    .ToString();
+                
+                if(docentCheck == null)
+                {
+                    return BadRequest("Docent not found.");
+                }
+
+                _context.Cijfers.Add(cijfer);
+            }
+            _context.SaveChanges();
+            return Ok(new { message = "Cijfers successfully added." });
+        }
+
 
 
         // GET: api/Cijfers/5

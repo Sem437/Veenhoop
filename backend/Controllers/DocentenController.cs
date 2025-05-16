@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Veenhoop.Data;
 using Veenhoop.Models;
+using Veenhoop.Dto;
 
 namespace Veenhoop.Controllers
 {
@@ -41,6 +37,73 @@ namespace Veenhoop.Controllers
 
             return docenten;
         }
+
+        // GET: api/Docenten/klassen/5
+        [HttpGet("klassen/{docentId}")]
+        public async Task<ActionResult<List<KlasStudentDto>>> GetDocentenKlassen(int docentId)
+        {
+            var docentIdCheck = await _context.Docenten.FirstOrDefaultAsync(d => d.Id == docentId);
+
+            if (docentIdCheck == null)
+            {
+                return NotFound();
+            }
+
+            var docentVakken = await _context.DocentVakken
+                .Where(dv => dv.DocentId == docentId)
+                .ToListAsync();
+
+            var klasIds = docentVakken.Select(k => k.KlasId).ToList();
+            var vakIds  = docentVakken.Select(v => v.VakId ).ToList();
+
+            var klassen = await _context.Klassen
+                .Where(k => klasIds.Contains(k.Id))
+                .Include(k => k.Studenten)
+                .ToListAsync();
+         
+            var vakken = await _context.Vakken
+                .Where(v => vakIds.Contains(v.Id))
+                .ToListAsync();
+
+            //var result = klassen.Select(k => new KlasStudentDto
+            //{
+            //    KlasId = k.Id,
+            //    KlasNaam = k.KlasNaam,
+            //    vakId = 2,
+            //    VakNaam = k.KlasNaam,
+            //    Studenten = k.Studenten.Select(s => new StudentDto
+            //    {
+            //        Id = s.Id,
+            //        Voornaam = s.Voornaam,
+            //        Tussenvoegsel = s.Tussenvoegsel,
+            //        Achternaam = s.Achternaam
+            //    }).ToList()
+            //}).ToList();
+
+            var result = docentVakken.Select(dv =>
+            {
+                var klas = klassen.FirstOrDefault(k => k.Id == dv.KlasId);
+                var vak = vakken.FirstOrDefault(v => v.Id == dv.VakId);
+
+                return new KlasStudentDto
+                {
+                    KlasId = klas.Id,
+                    KlasNaam = klas.KlasNaam,
+                    vakId = vak.Id,
+                    VakNaam = vak.VakNaam,
+                    Studenten = klas.Studenten.Select(s => new StudentDto
+                    {
+                        Id = s.Id,
+                        Voornaam = s.Voornaam,
+                        Tussenvoegsel = s.Tussenvoegsel,
+                        Achternaam = s.Achternaam
+                    }).ToList()
+                };
+            });
+
+
+            return Ok(result);
+        }       
 
         // PUT: api/Docenten/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
