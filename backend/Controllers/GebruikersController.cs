@@ -89,7 +89,12 @@ namespace Veenhoop.Controllers
             }
 
             var EmailCheck = await _context.Gebruikers
-                .FirstOrDefaultAsync(x => x.Email == gebruikers.Email);
+                .Join(_context.Docenten,
+                g => g.Email,
+                d => d.Email,
+                (g, d) => new { gebruiker = g, docent = d})
+                .FirstOrDefaultAsync(dg => dg.docent.Email == gebruikers.Email ||
+                dg.gebruiker.Email == gebruikers.Email);
 
             if (EmailCheck != null)
             {

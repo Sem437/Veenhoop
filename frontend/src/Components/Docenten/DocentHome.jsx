@@ -21,20 +21,16 @@ const DocentHome = () => {
                     <tr>
                         <th>Klas</th>
                         <th>Vak</th>
-                        <th>Studenten</th>
+                        <th>Aantal studenten</th>
                     </tr>
                 </thead>
                 <tbody>
                     {data.map((item, index) => (
                         <tr key={index}>
-                            <td>{item.klasNaam}</td>
+                            <td><a href={`/Dashboard/klas/${item.id}`}>{item.klasNaam}</a></td>
                             <td>{item.vakNaam}</td>
                             <td>
-                                {item.studenten.map((student, index) => (
-                                    <div key={index}>
-                                        {student.voornaam} {student.tussenvoegsel} {student.achternaam}
-                                    </div>
-                                ))}
+                                {item.studenten.length}
                             </td>
                         </tr>
                     ))}

@@ -7,6 +7,7 @@ import Navbar from './Navbar'
 import ProtectedRoute from './Components/ProtectedRoute'
 import Home from './Components/Home'
 import DocentHome from './Components/Docenten/DocentHome'
+import Klas from './Components/Docenten/Klas'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/"          element={<ProtectedRoute> <Home /> </ProtectedRoute>} />
           <Route path="/Home"      element={<ProtectedRoute> <Home /> </ProtectedRoute>} />
           <Route path="/Dashboard" element={<ProtectedRoute> <DocentHome /> </ProtectedRoute>} />
+          <Route path="/Dashboard/klas/:klasId" element={<ProtectedRoute> <Klas /> </ProtectedRoute>} />
         </Routes>
       </div>
     </Router>
