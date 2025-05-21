@@ -10,6 +10,7 @@
 
     public class KlasStudentDto
     {
+        public int Id { get; set; }
         public int KlasId { get; set; }
         public required string KlasNaam { get; set; }
         public int vakId { get; set; }

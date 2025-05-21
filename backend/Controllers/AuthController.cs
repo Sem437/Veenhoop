@@ -33,41 +33,35 @@ namespace Veenhoop.Controllers
                 return BadRequest("Invalid login request.");
             }
 
-            var gebruiker = await _context.Gebruikers
-                .FirstOrDefaultAsync(g => g.Email == request.Email);
+            var docent  = await _context.Docenten.FirstOrDefaultAsync(d => d.Email == request.Email);
 
-            if (gebruiker == null)
+            if(docent != null)
             {
-                return NotFound("User not found.");
+                if(!CheckPassword(request.Password, docent.Wachtwoord))
+                {
+                    return Unauthorized("Invalid password.");
+                }
+
+                var token = generateJwtToken(docent.Email, docent.Id, docent.Voornaam, docent.Tussenvoegsel, docent.Achternaam);
+                return Ok(new { token });
             }
 
-            bool wachtwoordCheck = CheckPassword(request.Password, gebruiker.Wachtwoord);
+            var gebruiker = await _context.Gebruikers.FirstOrDefaultAsync(g => g.Email == request.Email);
 
-            if(!wachtwoordCheck)
+            if (gebruiker != null)
             {
-                return Unauthorized("Invalid password.");
+                if(!CheckPassword(request.Password, gebruiker.Wachtwoord))
+                {
+                    return Unauthorized("Invalid password.");
+                }
+
+                var token = generateJwtToken(gebruiker.Email, gebruiker.Id, gebruiker.Voornaam, gebruiker.Tussenvoegsel, gebruiker.Achternaam);
+                return Ok(new { token });
             }
-            
 
-            //Jwt
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("B9$uR2!fZ1@vL7#xQ3^pM5&nH8*wA0dE");
 
-            var tokenParameters = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[] {
-                new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
-                new Claim(ClaimTypes.Name, $"{gebruiker.Voornaam} {gebruiker.Tussenvoegsel} {gebruiker.Achternaam}"),
-                new Claim(ClaimTypes.Email, gebruiker.Email)
-                }),
-                Expires = DateTime.UtcNow.AddHours(24),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tokenHandler.CreateToken(tokenParameters);
-            var jwt = tokenHandler.WriteToken(token);
-
-            return Ok(new { token = jwt});
+            return Ok();
+           
         }
 
         private bool CheckPassword(string wachtwoord, string hashedWachtwoord)
@@ -79,6 +73,41 @@ namespace Veenhoop.Controllers
 
                 return hashedInput == hashedWachtwoord;
             }
+        }
+
+        private string generateJwtToken(string email, int Id, string voorNaam, string? tv, string achterNaam)
+        {
+            //Jwt
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes("B9$uR2!fZ1@vL7#xQ3^pM5&nH8*wA0dE");
+
+            //var tokenParameters = new SecurityTokenDescriptor
+            //{
+            //    Subject = new ClaimsIdentity(new[] {
+            //    new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
+            //    new Claim(ClaimTypes.Name, $"{gebruiker.Voornaam} {gebruiker.Tussenvoegsel} {gebruiker.Achternaam}"),
+            //    new Claim(ClaimTypes.Email, gebruiker.Email)
+            //    }),
+            //    Expires = DateTime.UtcNow.AddHours(24),
+            //    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            //};
+
+            var claims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.NameIdentifier, Id.ToString()),
+                new Claim(ClaimTypes.Name, $"{voorNaam} {tv} {achterNaam}"),
+                new Claim(ClaimTypes.Email, email)
+            };
+
+            var tokenDescription = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddHours(24),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescription);
+            return tokenHandler.WriteToken(token);
         }
     }
 }

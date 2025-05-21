@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Veenhoop.Data;
 using Veenhoop.Models;
 using Veenhoop.Dto;
+using System.Text;
+using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Veenhoop.Controllers
 {
@@ -63,22 +66,7 @@ namespace Veenhoop.Controllers
          
             var vakken = await _context.Vakken
                 .Where(v => vakIds.Contains(v.Id))
-                .ToListAsync();
-
-            //var result = klassen.Select(k => new KlasStudentDto
-            //{
-            //    KlasId = k.Id,
-            //    KlasNaam = k.KlasNaam,
-            //    vakId = 2,
-            //    VakNaam = k.KlasNaam,
-            //    Studenten = k.Studenten.Select(s => new StudentDto
-            //    {
-            //        Id = s.Id,
-            //        Voornaam = s.Voornaam,
-            //        Tussenvoegsel = s.Tussenvoegsel,
-            //        Achternaam = s.Achternaam
-            //    }).ToList()
-            //}).ToList();
+                .ToListAsync();           
 
             var result = docentVakken.Select(dv =>
             {
@@ -87,6 +75,7 @@ namespace Veenhoop.Controllers
 
                 return new KlasStudentDto
                 {
+                    Id = dv.Id,
                     KlasId = klas.Id,
                     KlasNaam = klas.KlasNaam,
                     vakId = vak.Id,
@@ -103,7 +92,98 @@ namespace Veenhoop.Controllers
 
 
             return Ok(result);
-        }       
+        }
+
+        // GET: api/Docenten/klassen/5/klasId/vakId
+        [HttpGet("klassen/{docentId}/{docentVakkenId}")]
+        public async Task<ActionResult<KlasStudentDto>> GetDocentKlas(int docentId, int docentVakkenId)
+        {
+            var docent = await _context.Docenten.FindAsync(docentId);
+            if (docent == null)
+            {
+                return NotFound("Docent niet gevonden.");
+            }
+
+            var docentVak = await _context.DocentVakken
+                .FirstOrDefaultAsync(dv => dv.Id == docentVakkenId && dv.DocentId == docentId);
+
+            if (docentVak == null)
+            {
+                return NotFound("Koppeling tussen docent en vak niet gevonden.");
+            }
+
+            var klas = await _context.Klassen
+                .Include(k => k.Studenten)
+                .FirstOrDefaultAsync(k => k.Id == docentVak.KlasId);
+
+            if (klas == null)
+            {
+                return NotFound("Klas niet gevonden.");
+            }
+
+            var vak = await _context.Vakken.FindAsync(docentVak.VakId);
+            if (vak == null)
+            {
+                return NotFound("Vak niet gevonden.");
+            }
+
+            var result = new KlasStudentDto
+            {
+                Id = docentVak.Id,
+                KlasId = klas.Id,
+                KlasNaam = klas.KlasNaam,
+                vakId = vak.Id,
+                VakNaam = vak.VakNaam,
+                Studenten = klas.Studenten.Select(s => new StudentDto
+                {
+                    Id = s.Id,
+                    Voornaam = s.Voornaam,
+                    Tussenvoegsel = s.Tussenvoegsel,
+                    Achternaam = s.Achternaam
+                }).ToList()
+            };
+
+            return Ok(result);
+        }
+
+        // POST: api/Docenten/klas
+        [HttpPost("klas")]
+        public async Task<IActionResult> PostCijfers([FromBody] CijferInvoerDto cijferInvoer)
+        {
+            if (cijferInvoer == null)
+            {
+                return BadRequest("Geen data ontvangen.");
+            }
+
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                foreach (var cijfer in cijferInvoer.Cijfers)
+                {
+                    var cijferEntity = new Cijfers
+                    {
+                        Leerjaar = cijferInvoer.Leerjaar,
+                        Periode = cijferInvoer.Periode,
+                        ToetsId = cijferInvoer.ToetsId,
+                        GebruikersId = cijfer.StudentId,
+                        Cijfer = cijfer.Cijfer
+                    };
+                    _context.Cijfers.Add(cijferEntity);
+                }
+
+                await _context.SaveChangesAsync();
+
+                transaction.Commit();
+
+                return Ok("Cijfers succesvol opgeslagen.");
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                return BadRequest($"Er is een fout opgetreden: {ex.Message}");
+            }
+
+        }
 
         // PUT: api/Docenten/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -141,6 +221,27 @@ namespace Veenhoop.Controllers
         [HttpPost]
         public async Task<ActionResult<Docenten>> PostDocenten(Docenten docenten)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var emailCheck = await _context.Docenten
+                .Join(_context.Gebruikers,
+                d => d.Email,
+                g => g.Email,
+                (d, g) => new { Docent = d, Gebruiker = g })
+                .FirstOrDefaultAsync(dg => dg.Docent.Email  == docenten.Email ||
+                dg.Gebruiker.Email == docenten.Email);
+
+            if (emailCheck != null)
+            {
+                return BadRequest("Email is al in gebruik.");
+            }
+
+            string hashedPassword = HashPassword(docenten.Wachtwoord);
+            docenten.Wachtwoord = hashedPassword;
+
             _context.Docenten.Add(docenten);
             await _context.SaveChangesAsync();
 
@@ -166,6 +267,16 @@ namespace Veenhoop.Controllers
         private bool DocentenExists(int id)
         {
             return _context.Docenten.Any(e => e.Id == id);
+        }
+
+        // Hashes a password using SHA256
+        private string HashPassword(string password)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                return Convert.ToBase64String(hashedBytes);
+            }
         }
     }
 }
