@@ -9,7 +9,7 @@ using Veenhoop.Data;
 using Veenhoop.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using System.Security.Claims;   
 
 namespace Veenhoop.Controllers
 {
@@ -30,7 +30,7 @@ namespace Veenhoop.Controllers
         {
             if (request == null)
             {
-                return BadRequest("Invalid login request.");
+                return BadRequest(new { message = "Ongeldig login-verzoek." });
             }
 
             var gebruiker = await _context.Gebruikers
@@ -38,28 +38,27 @@ namespace Veenhoop.Controllers
 
             if (gebruiker == null)
             {
-                return NotFound("User not found.");
+                return BadRequest(new { message = "E-mailadres is niet correct." });
             }
 
             bool wachtwoordCheck = CheckPassword(request.Password, gebruiker.Wachtwoord);
 
-            if(!wachtwoordCheck)
+            if (!wachtwoordCheck)
             {
-                return Unauthorized("Invalid password.");
+                return BadRequest(new { message = "Wachtwoord is niet correct." });
             }
-            
 
-            //Jwt
+            // JWT token aanmaken
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("B9$uR2!fZ1@vL7#xQ3^pM5&nH8*wA0dE");
 
             var tokenParameters = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] {
-                new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
-                new Claim(ClaimTypes.Name, $"{gebruiker.Voornaam} {gebruiker.Tussenvoegsel} {gebruiker.Achternaam}"),
-                new Claim(ClaimTypes.Email, gebruiker.Email)
-                }),
+            new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
+            new Claim(ClaimTypes.Name, $"{gebruiker.Voornaam} {gebruiker.Tussenvoegsel} {gebruiker.Achternaam}"),
+            new Claim(ClaimTypes.Email, gebruiker.Email)
+        }),
                 Expires = DateTime.UtcNow.AddHours(24),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
@@ -67,8 +66,9 @@ namespace Veenhoop.Controllers
             var token = tokenHandler.CreateToken(tokenParameters);
             var jwt = tokenHandler.WriteToken(token);
 
-            return Ok(new { token = jwt});
+            return Ok(new { token = jwt });
         }
+
 
         private bool CheckPassword(string wachtwoord, string hashedWachtwoord)
         {

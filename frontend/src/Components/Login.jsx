@@ -7,12 +7,16 @@ const Login = () => {
         password: '',
     });
 
+    const [error, setError] = useState('');
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(''); // reset error message
+
         try {
             const response = await fetch('https://localhost:7083/api/Auth/Login', {
                 method: 'POST',
@@ -20,7 +24,7 @@ const Login = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(formData),
-            });                        
+            });
 
             const text = await response.text();
             let data;
@@ -35,11 +39,11 @@ const Login = () => {
                 window.location.href = '/';
             } else {
                 console.error('Inloggen mislukt:', data);
-                alert('Er ging iets mis bij inloggen.');
+                setError(data.message || 'Er ging iets mis bij inloggen.');
             }
         } catch (error) {
             console.error('Fout bij inloggen:', error);
-            alert(error.message);
+            setError(error.message);
         }
     };
 
@@ -47,8 +51,23 @@ const Login = () => {
         <div className="login-container">
             <h2>Inloggen</h2>
             <form className="login-form" onSubmit={handleSubmit}>
-                <input  type="text" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-                <input  type="password" name="password" placeholder="Wachtwoord" value={formData.wachtwoord} onChange={handleChange} required />
+                <input 
+                    type="text" 
+                    name="email" 
+                    placeholder="Email" 
+                    value={formData.email} 
+                    onChange={handleChange} 
+                    required 
+                />
+                <input 
+                    type="password" 
+                    name="password" 
+                    placeholder="Wachtwoord" 
+                    value={formData.password} 
+                    onChange={handleChange} 
+                    required 
+                />
+                {error && <p className="error-message">{error}</p>}
                 <button type="submit" className="login-button">Inloggen</button>
             </form>
         </div>
