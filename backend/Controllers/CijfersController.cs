@@ -78,9 +78,9 @@ namespace Veenhoop.Controllers
                     .FirstOrDefault(c => c.DocentId == docentId)
                     .ToString();
                 
-                if(docentCheck == null)
+                if ( docentCheck == null)
                 {
-                    return BadRequest("Docent not found.");
+                    return BadRequest("Docent niet gevonden.");
                 }
 
                 _context.Cijfers.Add(cijfer);
