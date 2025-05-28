@@ -1,10 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
+const parseJwt = (token) => {
+  try {
+    const base64Payload = token.split('.')[1];
+    const payload = atob(base64Payload); // decode base64
+    return JSON.parse(payload); // parse JSON
+  } 
+  catch (e) {
+    console.error("Fout bij decoderen van token:", e);
+    return null;
+  }
+};
+
 const Klas = () => {
     const [data, setData] = useState(null); 
     const [toetsen, setToetsen] = useState([]);
     const { klasId } = useParams();
+
+    const token = localStorage.getItem('token');
+    const payload = parseJwt(token);
+    const docentId = payload?.nameid;
+    if (!docentId) {
+        return;
+    }
 
     const [formData, setFormData] = useState({
         leerjaar: "",
@@ -14,7 +33,7 @@ const Klas = () => {
     });
 
     useEffect(() => {
-        fetch(`https://localhost:7083/api/Docenten/klassen/1/${klasId}`, {
+        fetch(`https://localhost:7083/api/Docenten/klassen/${docentId}/${klasId}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         })
@@ -137,6 +156,9 @@ const Klas = () => {
                                                 value={formData.cijfers[student.id] || ""}
                                                 onChange={(e) => handleCijferChange(student.id, e.target.value)}
                                             />
+                                        </td>
+                                        <td>
+                                            <a href={`/klas/${klasId}/${student.id}/${data.vakId}`}>Cijfer wijzigen</a>
                                         </td>
                                     </tr>
                                 ))}

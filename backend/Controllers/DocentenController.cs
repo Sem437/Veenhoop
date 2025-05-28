@@ -72,7 +72,7 @@ namespace Veenhoop.Controllers
             {
                 var klas = klassen.FirstOrDefault(k => k.Id == dv.KlasId);
                 var vak = vakken.FirstOrDefault(v => v.Id == dv.VakId);
-
+               
                 return new KlasStudentDto
                 {
                     Id = dv.Id,
@@ -144,6 +144,56 @@ namespace Veenhoop.Controllers
             };
 
             return Ok(result);
+        }
+
+
+        // GET: api/Docent/Studentcijfers/3
+        [HttpGet("Studentcijfers/{studentId}")]
+        public async Task<ActionResult<List<StudentCijferUpdateDto>>> GetStudentCijfer(int studentId, 
+            [FromHeader] int docentId, [FromHeader] int vakId)
+        {
+            var student = await _context.Gebruikers.Where(s => s.Id == studentId).FirstOrDefaultAsync();
+            var docent  = await _context.Docenten.Where(d => d.Id == docentId).FirstOrDefaultAsync();
+
+            if (student == null) return NotFound("Student niet gevonden.");
+            if (docent  == null) return NotFound("Docent niet gevonden. ");
+
+            var DocentVak = await _context.DocentVakken
+                .Where(dv => dv.DocentId == docentId && dv.VakId == vakId)
+                .ToListAsync();
+            if (DocentVak == null) return Forbid();
+
+            var vak = await _context.Vakken
+                .Where(v => v.Id == vakId)
+                .FirstOrDefaultAsync();
+
+            if (vak == null)
+            {
+                return NotFound("Vak niet gevonden.");
+            }
+
+            var cijfers = await _context.Cijfers
+                .Where(c => c.GebruikersId == studentId && 
+                _context.Toetsen.Any(t => t.VakId == vakId))
+                .Select(c => new StudentCijferUpdateDto
+                {
+                    CijferId = c.Id,
+                    Cijfer = c.Cijfer,
+                    VakNaam = _context.Vakken
+                        .Where(v => v.Id == vakId)
+                        .Select(v => v.VakNaam)
+                        .FirstOrDefault(),
+                    ToetsNaam = _context.Toetsen
+                        .Where(t => t.Id == c.ToetsId)
+                        .Select(t => t.Naam)
+                        .FirstOrDefault(),
+                    Leerjaar = c.Leerjaar,
+                    Periode = c.Periode,
+                    voornaam = student.Voornaam,
+                    achternaam = student.Achternaam
+                }).ToListAsync();
+
+            return Ok(cijfers);
         }
 
         // POST: api/Docenten/klas

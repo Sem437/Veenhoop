@@ -42,7 +42,9 @@ namespace Veenhoop.Controllers
                     return Unauthorized("Invalid password.");
                 }
 
-                var token = generateJwtToken(docent.Email, docent.Id, docent.Voornaam, docent.Tussenvoegsel, docent.Achternaam);
+                string Rol = "Docent";
+
+                var token = generateJwtToken(docent.Email, docent.Id, docent.Voornaam, docent.Tussenvoegsel, docent.Achternaam, Rol);
                 return Ok(new { token });
             }
 
@@ -55,7 +57,9 @@ namespace Veenhoop.Controllers
                     return Unauthorized("Invalid password.");
                 }
 
-                var token = generateJwtToken(gebruiker.Email, gebruiker.Id, gebruiker.Voornaam, gebruiker.Tussenvoegsel, gebruiker.Achternaam);
+                var Rol = "Student";
+
+                var token = generateJwtToken(gebruiker.Email, gebruiker.Id, gebruiker.Voornaam, gebruiker.Tussenvoegsel, gebruiker.Achternaam, Rol);
                 return Ok(new { token });
             }
 
@@ -75,27 +79,16 @@ namespace Veenhoop.Controllers
             }
         }
 
-        private string generateJwtToken(string email, int Id, string voorNaam, string? tv, string achterNaam)
+        private string generateJwtToken(string email, int Id, string voorNaam, string? tv, string achterNaam, string Rol)
         {
-            //Jwt
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("B9$uR2!fZ1@vL7#xQ3^pM5&nH8*wA0dE");
-
-            //var tokenParameters = new SecurityTokenDescriptor
-            //{
-            //    Subject = new ClaimsIdentity(new[] {
-            //    new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
-            //    new Claim(ClaimTypes.Name, $"{gebruiker.Voornaam} {gebruiker.Tussenvoegsel} {gebruiker.Achternaam}"),
-            //    new Claim(ClaimTypes.Email, gebruiker.Email)
-            //    }),
-            //    Expires = DateTime.UtcNow.AddHours(24),
-            //    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            //};
+            var key = Encoding.ASCII.GetBytes("B9$uR2!fZ1@vL7#xQ3^pM5&nH8*wA0dE");           
 
             var claims = new List<Claim>()
             {
                 new Claim(ClaimTypes.NameIdentifier, Id.ToString()),
                 new Claim(ClaimTypes.Name, $"{voorNaam} {tv} {achterNaam}"),
+                new Claim(ClaimTypes.Role, Rol),
                 new Claim(ClaimTypes.Email, email)
             };
 
