@@ -10,6 +10,7 @@ import Home from './Components/Home'
 import DocentHome from './Components/Docenten/DocentHome'
 import Klas from './Components/Docenten/Klas'
 import CijferWijzigen from './Components/Docenten/CijferWijzigen'
+import DocentenOverzicht from './Components/Docenten/DocentenOverzicht'
 
 // 👇 functie om payload van JWT te decoden zonder externe lib
 function parseJwt(token) {
@@ -83,6 +84,8 @@ function App() {
               <Route path="/"             element={<ProtectedRoute><DocentHome /></ProtectedRoute>} />
               <Route path="/klas/:klasId" element={<ProtectedRoute><Klas /></ProtectedRoute>} />
               <Route path='/klas/:klasId/:studentId/:vakId' element={<ProtectedRoute><CijferWijzigen /></ProtectedRoute>}></Route>
+
+              <Route path='/Overzicht' element={<ProtectedRoute><DocentenOverzicht /></ProtectedRoute>} />
             </>
           )}
         </Routes>
