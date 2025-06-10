@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Veenhoop.Data;
+using Veenhoop.Dto;
 using Veenhoop.Models;
 
 namespace Veenhoop.Controllers
@@ -40,6 +41,40 @@ namespace Veenhoop.Controllers
             }
 
             return docentVakken;
+        }
+
+        // GET: api/DocentVakken/Dto 
+        [HttpGet("DocentenOverzicht")]
+        public async Task<ActionResult<List<DocentVakkenDto>>> GetDocentVakkenDto()
+        {
+            var docentVakken = await _context.DocentVakken.ToListAsync();            
+            var docentVakkenDtoList = new List<DocentVakkenDto>();
+
+            foreach (var item in docentVakken)
+            {
+                var vak = await _context.Vakken.FindAsync(item.VakId);
+                var docent = await _context.Docenten.FindAsync(item.DocentId);
+                var klas = await _context.Klassen.FindAsync(item.KlasId);
+
+                if(vak == null || docent == null || klas == null)
+                {
+                    return NotFound();
+                }
+                
+                var Dto = new DocentVakkenDto
+                {
+                    id = item.Id,
+                    vakId = item.VakId,
+                    docentId = item.DocentId,
+                    klasId = item.KlasId,
+                    vakNaam = vak.VakNaam,
+                    docentNaam = docent.Voornaam + " " + (docent.Tussenvoegsel != null ? docent.Tussenvoegsel : string.Empty) + " " + docent.Achternaam,
+                    klasNaam = klas.KlasNaam
+                };
+                docentVakkenDtoList.Add(Dto);
+            }
+
+            return Ok(docentVakkenDtoList);
         }
 
         // PUT: api/DocentVakken/5
