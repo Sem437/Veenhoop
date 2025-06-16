@@ -34,7 +34,11 @@ const Navbar = () => {
                 <Link to="/">Home</Link>
                 
                 {isAuthenticated() && getRole() === 'Docent' && (
-                    <Link to="/Overzicht">Overzicht</Link>
+                    <>
+                        <Link to="/Overzicht">Overzicht</Link>
+                        <Link to="/Klassen">Klassen</Link>
+                    </>
+
                 )}
             </div>            
             <div className="nav-rechts">

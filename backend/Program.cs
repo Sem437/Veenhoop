@@ -51,7 +51,26 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
+//Seeder
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        // Optioneel: pas migraties toe bij opstart (aanbevolen voor een lege db)
+        // context.Database.Migrate();
 
+        DataSeeder.Seed(context); // Roep je statische seeder methode aan
+        Console.WriteLine("Database seeding voltooid (indien nodig)."); // Optionele logging
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+//
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
