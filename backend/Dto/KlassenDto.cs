@@ -17,4 +17,12 @@
         public required string VakNaam { get; set; }
         public List<StudentDto> Studenten { get; set; } = new();
     }
+
+    public class KlasDto
+    {
+        public int KlasId { get; set; }
+        public required string KlasNaam { get; set; }
+        public List<StudentDto> Studenten { get; set; } = new();
+
+    }
 }

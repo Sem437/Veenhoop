@@ -44,7 +44,7 @@ const Klas = () => {
                     fetch(`https://localhost:7083/api/Toetsen/Vakken/${json.vakId}`)
                         .then(res => res.json())
                         .then(setToetsen)
-                        .catch(err => console.error("Fout bij toetsen ophalen:", err));
+                        .catch(err => console.error("Fout bij toetsen ophalen:", err));                        
                 }
             })
             .catch(err => console.error('Fout bij klas ophalen:', err));
@@ -88,6 +88,7 @@ const Klas = () => {
                     alert("Cijfers succesvol opgeslagen!");
                 } else {
                     alert("Fout bij opslaan.");
+                    console.error("Fout bij POST:", res.statusText);
                 }
             })
             .catch(err => {
@@ -117,6 +118,7 @@ const Klas = () => {
                                 value={formData.periode}
                                 onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
                             >
+                                <option value="">Kies periode</option>
                                 <option value="1">Periode 1</option>
                                 <option value="2">Periode 2</option>
                                 <option value="3">Periode 3</option>
