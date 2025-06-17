@@ -13,6 +13,7 @@ import CijferWijzigen from './Components/Docenten/CijferWijzigen'
 import DocentenOverzicht from './Components/Docenten/DocentenOverzicht'
 import DocentKlassen from './Components/Docenten/Klassen'
 import DocentKlassenWijzigen from './Components/Docenten/KlassenWijzigen'
+import DocentToets from './Components/Docenten/Toetsen/ToetsMaken'
 
 // 👇 functie om payload van JWT te decoden zonder externe lib
 function parseJwt(token) {
@@ -90,6 +91,8 @@ function App() {
               <Route path='/Overzicht' element={<ProtectedRoute><DocentenOverzicht /></ProtectedRoute>} />
               <Route path='/Klassen' element={<ProtectedRoute><DocentKlassen /></ProtectedRoute>} />
               <Route path='/KlassenWijzigen/:klasId' element={<ProtectedRoute><DocentKlassenWijzigen /></ProtectedRoute>} />
+
+              <Route path='/Toetsen' element={<ProtectedRoute><DocentToets /></ProtectedRoute>} />
             </>
           )}
         </Routes>

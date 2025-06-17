@@ -99,7 +99,7 @@ const DocentKoppelenEnOverzicht = () => {
             <div style={{ marginLeft: "20px"}}>
                 <h2>Docent koppelen</h2>
                 <form onSubmit={handleSubmit}>
-                    <div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                         <select
                             value={selectedDocent?.id || ""}
                             onChange={e => setSelectedDocent(docenten.find(d => d.id === parseInt(e.target.value)))}>
