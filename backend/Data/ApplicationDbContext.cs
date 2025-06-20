@@ -17,4 +17,6 @@ namespace Veenhoop.Data
         public DbSet<Cijfers> Cijfers { get; set; }
         public DbSet<DocentVakken> DocentVakken { get; set; }
     }
+
 }
+        
