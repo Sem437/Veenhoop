@@ -58,7 +58,7 @@ namespace Veenhoop.Controllers
 
                 if(vak == null || docent == null || klas == null)
                 {
-                    return NotFound();
+                    return NotFound("Vak, docent of klas is null");
                 }
                 
                 var Dto = new DocentVakkenDto
