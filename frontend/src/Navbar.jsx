@@ -12,28 +12,28 @@ const Navbar = () => {
         navigate('/Login');
     };
 
-    const getRole = () => {
-        const token = localStorage.getItem('token');
+    const getRoles = () => {
+    const token = localStorage.getItem('token');
         if (token) {
             try {
                 const decoded = jwtDecode(token);
-                // Check common role claim names
-                const role = decoded?.role || decoded?.Rol || decoded?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-                return role || null;
+                const rollen = decoded?.role || decoded?.Rol || decoded?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+                return Array.isArray(rollen) ? rollen : [rollen];
             } catch (error) {
                 console.error("Error decoding token:", error);
-                return null; // Return null if token is invalid or decoding fails
+                return [];
             }
-        }
-        return null;
+            }
+            return [];
     };
+
 
     return (
         <nav className="nav">
             <div className="nav-links">
                 <Link to="/">Home</Link>
                 
-                {isAuthenticated() && getRole() === 'Docent' && (
+                {isAuthenticated() && getRoles().includes('Docent') && (
                     <>
                         <Link to="/Overzicht">Overzicht</Link>
                         <Link to="/Klassen">Klassen</Link>
@@ -44,7 +44,7 @@ const Navbar = () => {
             </div>            
             <div className="nav-rechts">
                 {isAuthenticated() ? (
-                    <button onClick={handleLogout}>Logout</button>
+                    <button onClick={handleLogout} className='logout-button'>Log uit</button>
                 ) : (
                     <>
                         <Link to="/Login">Login</Link>

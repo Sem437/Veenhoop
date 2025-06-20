@@ -94,7 +94,6 @@ const CijferWijzigen = () => {
                             <td>{item.leerjaar}</td>
                             <td>{item.periode}</td>
                             <td>{item.voornaam} {item.achternaam}</td>
-                            <td>{item.toetsId}</td>
                             <td><button onClick={() => handleSafe(item)}>Opslaan</button></td>
                         </tr>
                     ))}

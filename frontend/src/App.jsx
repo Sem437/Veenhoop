@@ -33,27 +33,29 @@ function parseJwt(token) {
 }
 
 function App() {
-  const [role, setRole] = useState(null)
+  const [roles, setRoles] = useState([])
   const [tokenChecked, setTokenChecked] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
-      setRole(null)
+      setRoles([])
       setTokenChecked(true)
       return
     }
 
     const decoded = parseJwt(token)
     if (decoded) {
-      const rol =
+      const rollen =
         decoded.role ||
         decoded.Rol ||
         decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
-      setRole(rol)
+
+      const rollenArray = Array.isArray(rollen) ? rollen : [rollen]
+      setRoles(rollenArray)
     } else {
       console.error('Token is ongeldig of niet te parsen.')
-      setRole(null)
+      setRoles([])
     }
 
     setTokenChecked(true)
@@ -75,26 +77,31 @@ function App() {
             <Route path="*" element={<Navigate to="/Login" replace />} />
           )}
 
-          {role === 'Student' && (
+          {/* Student routes */}
+          {roles.includes('Student') && (
             <>
               <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
               <Route path="/Home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
             </>
           )}
 
-          {role === 'Docent' && (
+          {/* Docent routes */}
+          {roles.includes('Docent') && (
             <>
-              <Route path="/"             element={<ProtectedRoute><DocentHome /></ProtectedRoute>} />
+              <Route path="/" element={<ProtectedRoute><DocentHome /></ProtectedRoute>} />
               <Route path="/klas/:klasId" element={<ProtectedRoute><Klas /></ProtectedRoute>} />
-              <Route path='/klas/:klasId/:studentId/:vakId' element={<ProtectedRoute><CijferWijzigen /></ProtectedRoute>}></Route>
-
+              <Route path='/klas/:klasId/:studentId/:vakId' element={<ProtectedRoute><CijferWijzigen /></ProtectedRoute>} />
               <Route path='/Overzicht' element={<ProtectedRoute><DocentenOverzicht /></ProtectedRoute>} />
               <Route path='/Klassen' element={<ProtectedRoute><DocentKlassen /></ProtectedRoute>} />
               <Route path='/KlassenWijzigen/:klasId' element={<ProtectedRoute><DocentKlassenWijzigen /></ProtectedRoute>} />
-
               <Route path='/Toetsen' element={<ProtectedRoute><DocentToets /></ProtectedRoute>} />
             </>
           )}
+
+          {/* Je kunt hier later ook admin routes toevoegen */}
+          {/* {roles.includes('Administrator') && (
+            <Route path="/AdminDashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          )} */}
         </Routes>
       </div>
     </Router>
