@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import '../../css/Docent/Cijferinvoer.css'; 
 
 const parseJwt = (token) => {
   try {
@@ -104,8 +105,8 @@ const Klas = () => {
                     <h3>Vak: {data.vakNaam}</h3>
 
                     <form onSubmit={handleSubmit}>
-                        <div>
-                            <input
+                        <div className="form-group">
+                            <input className="form-Leerjaar"
                                 type="number"
                                 placeholder="Leerjaar"
                                 min="1"
@@ -138,7 +139,7 @@ const Klas = () => {
                             </select>
                         </div>
 
-                        <table>
+                        <table className="cijferinvoer-table">
                             <thead>
                                 <tr>
                                     <th>Leerling</th>

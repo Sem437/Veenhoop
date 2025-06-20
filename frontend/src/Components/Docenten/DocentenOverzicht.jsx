@@ -119,12 +119,12 @@ const DocentKoppelenEnOverzicht = () => {
                             ))}
                         </select>
                         <select
-                            value={selectedKlas?.id || ""}
-                            onChange={e => setSelectedKlas(klassen.find(k => k.id === parseInt(e.target.value)))}>
+                            value={selectedKlas?.klasId || ""}
+                            onChange={e => setSelectedKlas(klassen.find(k => k.klasId === parseInt(e.target.value)))}>
                         
                             <option value="">Selecteer een klas</option>
                             {klassen.map(k => (
-                                <option key={k.id} value={k.id}>{k.klasNaam}</option>
+                                <option key={k.klasId} value={k.klasId}>{k.klasNaam}</option>
                             ))}
                         </select>
                     </div>
