@@ -93,7 +93,6 @@ const Home = () => {
         </thead>
         <tbody>
           {data.map((item, index) => (
-<<<<<<< HEAD
             <div key={index} >
               <p><strong>Vak:</strong> {item.vakkenNaam}</p>
               <p><strong>Toets:</strong> {item.toetsNaam}</p>
@@ -101,20 +100,7 @@ const Home = () => {
               <p><strong>Cijfer:</strong> {item.cijfer}</p>
 
             </div>
-=======
-            <tr key={index}>
-              <td>{item.vaknaam}</td>
-              <td>{item.periode1}</td>
-              <td>{item.gemPeriode1}</td>
-              <td>{item.periode2}</td>
-              <td>{item.gemPeriode2}</td>
-              <td>{item.periode3}</td>
-              <td>{item.gemPeriode3}</td>
-              <td>{item.periode4}</td>
-              <td>{item.gemPeriode4}</td>
-              <td>{item.gem}</td>
-            </tr>
->>>>>>> c5d764abf36b5b80b0420320b264e0a38c4295e9
+
           ))}
         </tbody>
       </table>
