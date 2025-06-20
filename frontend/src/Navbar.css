@@ -2,13 +2,13 @@
   position: fixed;           
   top: 0;
   left: 0;
-  width: 100%;
+  width: 99%;
   height: 50px;
   background-color: #1e1e1e;  
   border-bottom: 2px solid rgb(69, 64, 64);
   display: flex;
   align-items: center;
-  padding-left: 20px;
+  padding-inline: 20px;
   z-index: 1000;              
 }
   
@@ -17,4 +17,20 @@
   text-decoration: none;
   margin-right: 20px;
   font-weight: bold;
+}
+
+.nav div {
+  width: 100%;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+}
+
+.nav-rechts {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;      
+  margin-right: 2vw;
 }

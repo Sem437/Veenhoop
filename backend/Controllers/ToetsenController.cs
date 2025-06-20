@@ -42,6 +42,22 @@ namespace Veenhoop.Controllers
             return toetsen;
         }
 
+        // GET: api/Toetsen/vakken/5
+        [HttpGet("vakken/{vakId}")]
+        public async Task<ActionResult<List<Toetsen>>> GetToetsenVakken(int vakId)
+        {
+            var toetsen = await _context.Toetsen
+                .Where(t => t.VakId == vakId)
+                .ToListAsync();
+
+            if (toetsen == null || toetsen.Count == 0)
+            {
+                return NotFound();
+            }
+
+            return toetsen;
+        }
+
         // PUT: api/Toetsen/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

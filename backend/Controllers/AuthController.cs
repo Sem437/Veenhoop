@@ -33,16 +33,28 @@ namespace Veenhoop.Controllers
                 return BadRequest(new { message = "Ongeldig login-verzoek." });
             }
 
-            var gebruiker = await _context.Gebruikers
-                .FirstOrDefaultAsync(g => g.Email == request.Email);
+            var docent  = await _context.Docenten.FirstOrDefaultAsync(d => d.Email == request.Email);
 
-            if (gebruiker == null)
+            if(docent != null)
             {
+<<<<<<< HEAD
                 return BadRequest(new { message = "E-mailadres is niet correct." });
+=======
+                if(!CheckPassword(request.Password, docent.Wachtwoord))
+                {
+                    return Unauthorized("Invalid password.");
+                }
+
+                string Rol = "Docent";
+
+                var token = generateJwtToken(docent.Email, docent.Id, docent.Voornaam, docent.Tussenvoegsel, docent.Achternaam, Rol);
+                return Ok(new { token });
+>>>>>>> c5d764abf36b5b80b0420320b264e0a38c4295e9
             }
 
-            bool wachtwoordCheck = CheckPassword(request.Password, gebruiker.Wachtwoord);
+            var gebruiker = await _context.Gebruikers.FirstOrDefaultAsync(g => g.Email == request.Email);
 
+<<<<<<< HEAD
             if (!wachtwoordCheck)
             {
                 return BadRequest(new { message = "Wachtwoord is niet correct." });
@@ -67,6 +79,24 @@ namespace Veenhoop.Controllers
             var jwt = tokenHandler.WriteToken(token);
 
             return Ok(new { token = jwt });
+=======
+            if (gebruiker != null)
+            {
+                if(!CheckPassword(request.Password, gebruiker.Wachtwoord))
+                {
+                    return Unauthorized("Invalid password.");
+                }
+
+                var Rol = "Student";
+
+                var token = generateJwtToken(gebruiker.Email, gebruiker.Id, gebruiker.Voornaam, gebruiker.Tussenvoegsel, gebruiker.Achternaam, Rol);
+                return Ok(new { token });
+            }
+
+
+            return Ok();
+           
+>>>>>>> c5d764abf36b5b80b0420320b264e0a38c4295e9
         }
 
 
@@ -79,6 +109,30 @@ namespace Veenhoop.Controllers
 
                 return hashedInput == hashedWachtwoord;
             }
+        }
+
+        private string generateJwtToken(string email, int Id, string voorNaam, string? tv, string achterNaam, string Rol)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes("B9$uR2!fZ1@vL7#xQ3^pM5&nH8*wA0dE");           
+
+            var claims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.NameIdentifier, Id.ToString()),
+                new Claim(ClaimTypes.Name, $"{voorNaam} {tv} {achterNaam}"),
+                new Claim(ClaimTypes.Role, Rol),
+                new Claim(ClaimTypes.Email, email)
+            };
+
+            var tokenDescription = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddHours(24),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescription);
+            return tokenHandler.WriteToken(token);
         }
     }
 }
