@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Veenhoop.Data;
+using Veenhoop.Dto;
 using Veenhoop.Models;
 
 namespace Veenhoop.Controllers
@@ -23,23 +24,53 @@ namespace Veenhoop.Controllers
 
         // GET: api/Klassen
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Klassen>>> GetKlassen()
+        public async Task<ActionResult<List<KlasDto>>> GetKlassen()
         {
-            return await _context.Klassen.ToListAsync();
+            var klassen = await _context.Klassen.Include(k => k.Studenten).ToListAsync();
+
+            var klasDtos = klassen.Select(klas => new KlasDto
+            {
+                KlasId = klas.Id,
+                KlasNaam = klas.KlasNaam,
+                Studenten = klas.Studenten.Select(s => new StudentDto
+                {
+                    Id = s.Id,
+                    Voornaam = s.Voornaam,
+                    Tussenvoegsel = s.Tussenvoegsel,
+                    Achternaam = s.Achternaam
+                }).ToList()
+            }).ToList();
+
+            return klasDtos;
         }
 
         // GET: api/Klassen/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Klassen>> GetKlassen(int id)
+        public async Task<ActionResult<KlasDto>> GetKlassen(int id)
         {
-            var klassen = await _context.Klassen.FindAsync(id);
+            var klas = await _context.Klassen
+                .Include(k => k.Studenten)
+                .FirstOrDefaultAsync(k => k.Id == id);
 
-            if (klassen == null)
+            if (klas == null)
             {
                 return NotFound();
             }
 
-            return klassen;
+            var klasDto = new KlasDto
+            {
+                KlasId = klas.Id,
+                KlasNaam = klas.KlasNaam,
+                Studenten = klas.Studenten.Select(s => new StudentDto
+                {
+                    Id = s.Id,
+                    Voornaam = s.Voornaam,
+                    Tussenvoegsel = s.Tussenvoegsel,
+                    Achternaam = s.Achternaam
+                }).ToList()
+            };
+
+            return klasDto;
         }
 
         // PUT: api/Klassen/5
@@ -84,6 +115,31 @@ namespace Veenhoop.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetKlassen", new { id = klassen.Id }, klassen);
+        }
+
+        // POST api/Klassen/5/studenten
+        [HttpPost("{klasId}/studenten")]
+        public async Task<ActionResult<Klassen>> PostStudentKlassen(int klasId, [FromHeader] int studentId)
+        {
+            var klas = await _context.Klassen
+                .Include(k => k.Studenten)
+                .FirstOrDefaultAsync(k => k.Id == klasId);
+
+            var student = await _context.Gebruikers.FindAsync(studentId);
+
+            if(klas == null || student == null)
+            {
+                return NotFound();
+            }
+
+            if(!klas.Studenten.Contains(student))
+            {
+                klas.Studenten.Add(student);
+            }
+            
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         // DELETE: api/Klassen/5
