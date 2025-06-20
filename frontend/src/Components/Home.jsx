@@ -52,6 +52,8 @@ const Home = () => {
               <p><strong>Vak:</strong> {item.vakkenNaam}</p>
               <p><strong>Toets:</strong> {item.toetsNaam}</p>
               <p><strong>Cijfer:</strong> {item.cijfer}</p>
+              <p><strong>Cijfer:</strong> {item.cijfer}</p>
+
             </div>
           ))}
         </div>
