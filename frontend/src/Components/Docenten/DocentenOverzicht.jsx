@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import "../../css/DocentenOverzicht.css";
 
 const parseJwt = (token) => {
     try {
@@ -19,7 +20,7 @@ const DocentKoppelenEnOverzicht = () => {
     const [klassen, setKlassen] = useState([]);
     const [selectedDocent, setSelectedDocent] = useState(null);
     const [selectedVak, setSelectedVak] = useState(null);
-    const [selectedKlas, setSelectedKlas] = useState(null);
+    const [selectedKlas, setSelectedKlas] = useState(null); 
     const [data, setData] = useState([]);
 
     const token = localStorage.getItem('token');
@@ -48,12 +49,12 @@ const DocentKoppelenEnOverzicht = () => {
             .then(res => res.json())
             .then(setDocenten)
             .catch(err => console.error("Fout bij ophalen docenten:", err));
-        
+
         fetch("https://localhost:7083/api/Vakken")
             .then(res => res.json())
             .then(setVakken)
             .catch(err => console.error("Fout bij ophalen vakken:", err));
-        
+
         fetch("https://localhost:7083/api/Klassen")
             .then(res => res.json())
             .then(setKlassen)
@@ -104,7 +105,7 @@ const DocentKoppelenEnOverzicht = () => {
             <div style={{ marginRight: "20px" }}>
                 <h2>Overzicht</h2>
                 <button onClick={handleSaveAsPDF}>Opslaan als PDF</button>
-                <table border="1" cellPadding="5" style={{ marginTop: "10px", width: "100%", borderCollapse: "collapse" }}>
+                <table>
                     <thead>
                         <tr>
                             <th>Vak</th>
@@ -123,7 +124,6 @@ const DocentKoppelenEnOverzicht = () => {
                     </tbody>
                 </table>
             </div>
-
             {/* Form rechts */}
             {role?.includes("Administrator") && (
                 <div style={{ marginLeft: "20px" }}>
