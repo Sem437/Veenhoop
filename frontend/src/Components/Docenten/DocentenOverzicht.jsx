@@ -2,6 +2,17 @@ import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+const parseJwt = (token) => {
+    try {
+        const base64Payload = token.split('.')[1];
+        const payload = atob(base64Payload);
+        return JSON.parse(payload);
+    } catch (e) {   
+        console.error("Token decoding fout:", e);
+        return null;
+    }
+};
+
 const DocentKoppelenEnOverzicht = () => {
     const [docenten, setDocenten] = useState([]);
     const [vakken, setVakken] = useState([]);
@@ -10,6 +21,10 @@ const DocentKoppelenEnOverzicht = () => {
     const [selectedVak, setSelectedVak] = useState(null);
     const [selectedKlas, setSelectedKlas] = useState(null);
     const [data, setData] = useState([]);
+
+    const token = localStorage.getItem('token');
+    const decoded = parseJwt(token);
+    const role = decoded?.role;     
 
     const fetchOverzicht = () => {
         fetch("https://localhost:7083/api/DocentVakken/DocentenOverzicht")
@@ -110,44 +125,47 @@ const DocentKoppelenEnOverzicht = () => {
             </div>
 
             {/* Form rechts */}
-            <div style={{ marginLeft: "20px" }}>
-                <h2>Docent koppelen</h2>
-                <form onSubmit={handleSubmit}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                        <select
-                            value={selectedDocent?.id || ""}
-                            onChange={e => setSelectedDocent(docenten.find(d => d.id === parseInt(e.target.value)))}>
-                            <option value="">Selecteer een docent</option>
-                            {docenten.map(d => (
-                                <option key={d.id} value={d.id}>
-                                    {d.voornaam} {d.achternaam}
-                                </option>
-                            ))}
-                        </select>
+            {role?.includes("Administrator") && (
+                <div style={{ marginLeft: "20px" }}>
+                    <h2>Docent koppelen</h2>
+                    <form onSubmit={handleSubmit}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                            <select
+                                value={selectedDocent?.id || ""}
+                                onChange={e => setSelectedDocent(docenten.find(d => d.id === parseInt(e.target.value)))}>
+                                <option value="">Selecteer een docent</option>
+                                {docenten.map(d => (
+                                    <option key={d.id} value={d.id}>
+                                        {d.voornaam} {d.achternaam}
+                                    </option>
+                                ))}
+                            </select>
 
-                        <select
-                            value={selectedVak?.id || ""}
-                            onChange={e => setSelectedVak(vakken.find(v => v.id === parseInt(e.target.value)))}>
-                            <option value="">Selecteer een vak</option>
-                            {vakken.map(v => (
-                                <option key={v.id} value={v.id}>{v.vakNaam}</option>
-                            ))}
-                        </select>
+                            <select
+                                value={selectedVak?.id || ""}
+                                onChange={e => setSelectedVak(vakken.find(v => v.id === parseInt(e.target.value)))}>
+                                <option value="">Selecteer een vak</option>
+                                {vakken.map(v => (
+                                    <option key={v.id} value={v.id}>{v.vakNaam}</option>
+                                ))}
+                            </select>
 
-                        <select
-                            value={selectedKlas?.klasId || ""}
-                            onChange={e => setSelectedKlas(klassen.find(k => k.klasId === parseInt(e.target.value)))}>
-                            <option value="">Selecteer een klas</option>
-                            {klassen.map(k => (
-                                <option key={k.klasId} value={k.klasId}>{k.klasNaam}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div><button type="submit">Koppel</button></div>
-                </form>
-            </div>
+                            <select
+                                value={selectedKlas?.klasId || ""}
+                                onChange={e => setSelectedKlas(klassen.find(k => k.klasId === parseInt(e.target.value)))}>
+                                <option value="">Selecteer een klas</option>
+                                {klassen.map(k => (
+                                    <option key={k.klasId} value={k.klasId}>{k.klasNaam}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div><button type="submit">Koppel</button></div>
+                    </form>
+                </div>
+            )}
         </div>
     );
 };
 
 export default DocentKoppelenEnOverzicht;
+

@@ -224,6 +224,22 @@ namespace Veenhoop.Controllers
         [HttpPost("RolGebruikers")]
         public async Task<ActionResult<RolGebruiker>> PostRolGebruiker(RolGebruiker rolGebruiker)
         {
+            var Docent = await _context.Docenten.FindAsync(rolGebruiker.userId);
+
+            if (Docent == null)
+            {
+                return NotFound("Docent niet gevonden.");
+            }
+
+            var RolExists = await _context.RolGebruiker
+                .AnyAsync(rg => rg.userId == rolGebruiker.userId && rg.rolId == rolGebruiker.rolId);
+
+            if (RolExists)
+            {
+                return BadRequest("Deze rol is al gekoppeld aan deze gebruiker.");
+            }
+
+
             _context.RolGebruiker.Add(rolGebruiker);
             await _context.SaveChangesAsync();
 

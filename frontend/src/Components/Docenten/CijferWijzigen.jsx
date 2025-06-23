@@ -14,6 +14,7 @@ import { useParams } from 'react-router-dom'
 
 const CijferWijzigen = () => {
     const [data, setData] = useState([])
+    const [student, setStudent] = useState(null)
     const { studentId, vakId } = useParams()
     const token = localStorage.getItem('token')
     const decoded = parseJwt(token);
@@ -34,6 +35,17 @@ const CijferWijzigen = () => {
             setData(json);
         })
         .catch(err => console.error('Fout bij cijfers ophalen:', err));
+
+        fetch(`https://localhost:7083/api/Gebruikers/${studentId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+        .then(res => res.json())
+        .then(json => setStudent(json))
+        .catch(err => console.error('Fout bij student ophalen:', err));
     }, [studentId, docentId, vakId, token])
 
     const handleSafe = async (item) => {
@@ -70,7 +82,7 @@ const CijferWijzigen = () => {
 
     return (
         <div>
-            <h1>Cijfers van {studentId}</h1>
+            <h1>Cijfers van {student ? `${student.voornaam} ${student.achternaam}` : 'Laden...'}</h1>
             <table>
                 <thead>
                     <tr>
@@ -79,7 +91,6 @@ const CijferWijzigen = () => {
                         <th>Cijfer</th>
                         <th>Leerjaar</th>
                         <th>Periode</th>
-                        <th>Naam</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,7 +104,6 @@ const CijferWijzigen = () => {
                             </td>
                             <td>{item.leerjaar}</td>
                             <td>{item.periode}</td>
-                            <td>{item.voornaam} {item.achternaam}</td>
                             <td><button onClick={() => handleSafe(item)}>Opslaan</button></td>
                         </tr>
                     ))}
@@ -104,3 +114,4 @@ const CijferWijzigen = () => {
 }
 
 export default CijferWijzigen
+
