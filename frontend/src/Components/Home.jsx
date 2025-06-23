@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import "../css/Home.css";
 
 const parseJwt = (token) => {
   try {

@@ -83,7 +83,7 @@ namespace Veenhoop.Controllers
                     return BadRequest("Docent niet gevonden.");
                 }
 
-                _context.Cijfers.Add(cijfer);
+                _context.Cijfers.Add(cijfer); //INSERT into cijfer
             }
             _context.SaveChanges();
             return Ok(new { message = "Cijfers successfully added." });

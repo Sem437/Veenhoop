@@ -33,18 +33,32 @@ namespace Veenhoop.Controllers
                 return BadRequest("Invalid login request.");
             }
 
+            List<string> Rollen = new List<string>();
             var docent  = await _context.Docenten.FirstOrDefaultAsync(d => d.Email == request.Email);
 
             if(docent != null)
-            {
-                if(!CheckPassword(request.Password, docent.Wachtwoord))
+            {                
+                if (!CheckPassword(request.Password, docent.Wachtwoord))
                 {
                     return Unauthorized("Invalid password.");
                 }
 
-                string Rol = "Docent";
+                var DbRollen = await _context.RolGebruiker.Where(d => d.userId == docent.Id)
+                    .Select(r => r.rolId)
+                    .ToListAsync();
+                var Dbrol = await _context.Rol.Where(r => DbRollen.Contains(r.Id))
+                    .Select(r => r.Naam)
+                    .FirstOrDefaultAsync();
 
-                var token = generateJwtToken(docent.Email, docent.Id, docent.Voornaam, docent.Tussenvoegsel, docent.Achternaam, Rol);
+                if (Dbrol != null)
+                {
+                    Rollen.Add(Dbrol);
+                }
+
+                string Rol = "Docent";
+                Rollen.Add(Rol);
+
+                var token = generateJwtToken(docent.Email, docent.Id, docent.Voornaam, docent.Tussenvoegsel, docent.Achternaam, Rollen);
                 return Ok(new { token });
             }
 
@@ -58,14 +72,204 @@ namespace Veenhoop.Controllers
                 }
 
                 var Rol = "Student";
+                Rollen.Add(Rol);
 
-                var token = generateJwtToken(gebruiker.Email, gebruiker.Id, gebruiker.Voornaam, gebruiker.Tussenvoegsel, gebruiker.Achternaam, Rol);
+                var token = generateJwtToken(gebruiker.Email, gebruiker.Id, gebruiker.Voornaam, gebruiker.Tussenvoegsel, gebruiker.Achternaam, Rollen);
                 return Ok(new { token });
             }
 
 
             return Ok();
            
+        }
+
+        // GET: api/Rol
+        [HttpGet("Rol")]
+        public async Task<ActionResult<IEnumerable<Rol>>> GetRol()
+        {
+            return await _context.Rol.ToListAsync();
+        }
+
+        // GET: api/Rol/5
+        [HttpGet("Rol/{id}")]
+        public async Task<ActionResult<Rol>> GetRol(int id)
+        {
+            var rol = await _context.Rol.FindAsync(id);
+
+            if (rol == null)
+            {
+                return NotFound();
+            }
+
+            return rol;
+        }
+
+        // PUT: api/Rol/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("Rol/{id}")]
+        public async Task<IActionResult> PutRol(int id, Rol rol)
+        {
+            if (id != rol.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(rol).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!RolExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // POST: api/Rol
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost("Rol")]
+        public async Task<ActionResult<Rol>> PostRol(Rol rol)
+        {
+            _context.Rol.Add(rol);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetRol", new { id = rol.Id }, rol);
+        }
+
+        // DELETE: api/Rol/5
+        [HttpDelete("Rol/{id}")]
+        public async Task<IActionResult> DeleteRol(int id)
+        {
+            var rol = await _context.Rol.FindAsync(id);
+            if (rol == null)
+            {
+                return NotFound();
+            }
+
+            _context.Rol.Remove(rol);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+
+
+
+
+
+        // GET: api/RolGebruikers
+        [HttpGet("RolGebruikers")]
+        public async Task<ActionResult<IEnumerable<RolGebruiker>>> GetRolGebruiker()
+        {
+            return await _context.RolGebruiker.ToListAsync();
+        }
+
+        // GET: api/RolGebruikers/5
+        [HttpGet("RolGebruikers{id}")]
+        public async Task<ActionResult<RolGebruiker>> GetRolGebruiker(int id)
+        {
+            var rolGebruiker = await _context.RolGebruiker.FindAsync(id);
+
+            if (rolGebruiker == null)
+            {
+                return NotFound();
+            }
+
+            return rolGebruiker;
+        }
+
+        // PUT: api/RolGebruikers/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("Rolgebruikers{id}")]
+        public async Task<IActionResult> PutRolGebruiker(int id, RolGebruiker rolGebruiker)
+        {
+            if (id != rolGebruiker.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(rolGebruiker).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!RolGebruikerExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // POST: api/RolGebruikers
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost("RolGebruikers")]
+        public async Task<ActionResult<RolGebruiker>> PostRolGebruiker(RolGebruiker rolGebruiker)
+        {
+            var Docent = await _context.Docenten.FindAsync(rolGebruiker.userId);
+
+            if (Docent == null)
+            {
+                return NotFound("Docent niet gevonden.");
+            }
+
+            var RolExists = await _context.RolGebruiker
+                .AnyAsync(rg => rg.userId == rolGebruiker.userId && rg.rolId == rolGebruiker.rolId);
+
+            if (RolExists)
+            {
+                return BadRequest("Deze rol is al gekoppeld aan deze gebruiker.");
+            }
+
+
+            _context.RolGebruiker.Add(rolGebruiker);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetRolGebruiker", new { id = rolGebruiker.Id }, rolGebruiker);
+        }
+
+        // DELETE: api/RolGebruikers/5
+        [HttpDelete("Rolgebruikers/{id}")]
+        public async Task<IActionResult> DeleteRolGebruiker(int id)
+        {
+            var rolGebruiker = await _context.RolGebruiker.FindAsync(id);
+            if (rolGebruiker == null)
+            {
+                return NotFound();
+            }
+
+            _context.RolGebruiker.Remove(rolGebruiker);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool RolGebruikerExists(int id)
+        {
+            return _context.RolGebruiker.Any(e => e.Id == id);
+        }
+
+        private bool RolExists(int id)
+        {
+            return _context.Rol.Any(e => e.Id == id);
         }
 
         private bool CheckPassword(string wachtwoord, string hashedWachtwoord)
@@ -79,7 +283,7 @@ namespace Veenhoop.Controllers
             }
         }
 
-        private string generateJwtToken(string email, int Id, string voorNaam, string? tv, string achterNaam, string Rol)
+        private string generateJwtToken(string email, int Id, string voorNaam, string? tv, string achterNaam, List<string> Rollen)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("B9$uR2!fZ1@vL7#xQ3^pM5&nH8*wA0dE");           
@@ -88,9 +292,13 @@ namespace Veenhoop.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, Id.ToString()),
                 new Claim(ClaimTypes.Name, $"{voorNaam} {tv} {achterNaam}"),
-                new Claim(ClaimTypes.Role, Rol),
                 new Claim(ClaimTypes.Email, email)
             };
+
+            foreach (var rol in Rollen)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, rol));
+            }
 
             var tokenDescription = new SecurityTokenDescriptor
             {

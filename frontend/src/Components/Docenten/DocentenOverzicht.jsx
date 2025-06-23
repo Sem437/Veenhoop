@@ -3,6 +3,17 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import "../../css/DocentenOverzicht.css";
 
+const parseJwt = (token) => {
+    try {
+        const base64Payload = token.split('.')[1];
+        const payload = atob(base64Payload);
+        return JSON.parse(payload);
+    } catch (e) {   
+        console.error("Token decoding fout:", e);
+        return null;
+    }
+};
+
 const DocentKoppelenEnOverzicht = () => {
     const [docenten, setDocenten] = useState([]);
     const [vakken, setVakken] = useState([]);
@@ -11,6 +22,27 @@ const DocentKoppelenEnOverzicht = () => {
     const [selectedVak, setSelectedVak] = useState(null);
     const [selectedKlas, setSelectedKlas] = useState(null); 
     const [data, setData] = useState([]);
+
+    const token = localStorage.getItem('token');
+    const decoded = parseJwt(token);
+    const role = decoded?.role;     
+
+    const fetchOverzicht = () => {
+        fetch("https://localhost:7083/api/DocentVakken/DocentenOverzicht")
+            .then(res => res.json())
+            .then(result => {
+                console.log("DocentenOverzicht result:", result);
+                if (Array.isArray(result)) {
+                    setData(result);
+                } else if (Array.isArray(result.data)) {
+                    setData(result.data);
+                } else {
+                    console.error("Onverwacht formaat voor DocentenOverzicht:", result);
+                    setData([]);
+                }
+            })
+            .catch(err => console.error("Fout bij ophalen overzicht:", err));
+    };
 
     useEffect(() => {
         fetch("https://localhost:7083/api/Docenten")
@@ -27,11 +59,8 @@ const DocentKoppelenEnOverzicht = () => {
             .then(res => res.json())
             .then(setKlassen)
             .catch(err => console.error("Fout bij ophalen klassen:", err));
-
-        fetch("https://localhost:7083/api/DocentVakken/DocentenOverzicht")
-            .then(res => res.json())
-            .then(setData)
-            .catch(err => console.error("Fout bij ophalen overzicht:", err));
+        
+        fetchOverzicht();
     }, []);
 
     const handleSubmit = (e) => {
@@ -53,9 +82,7 @@ const DocentKoppelenEnOverzicht = () => {
         .then(res => {
             if (res.ok) {
                 alert("Succesvol gekoppeld!");
-                fetch("https://localhost:7083/api/DocentVakken/DocentenOverzicht")
-                    .then(res => res.json())
-                    .then(setData);
+                fetchOverzicht();
             } else {
                 alert("Fout bij koppelen");
             }
@@ -73,9 +100,9 @@ const DocentKoppelenEnOverzicht = () => {
     };
 
     return (
-        <div className="page-container">
-            {/* Overzicht */}
-            <div className="card">
+        <div style={{ display: "flex", alignItems: "flex-start", width: "100%" }}>
+            {/* Overzicht links */}
+            <div style={{ marginRight: "20px" }}>
                 <h2>Overzicht</h2>
                 <button onClick={handleSaveAsPDF}>Opslaan als PDF</button>
                 <table>
@@ -87,7 +114,7 @@ const DocentKoppelenEnOverzicht = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {data.map((item, index) => (
+                        {Array.isArray(data) && data.map((item, index) => (
                             <tr key={index}>
                                 <td>{item.vakNaam}</td>
                                 <td>{item.docentNaam}</td>
@@ -97,64 +124,48 @@ const DocentKoppelenEnOverzicht = () => {
                     </tbody>
                 </table>
             </div>
+            {/* Form rechts */}
+            {role?.includes("Administrator") && (
+                <div style={{ marginLeft: "20px" }}>
+                    <h2>Docent koppelen</h2>
+                    <form onSubmit={handleSubmit}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                            <select
+                                value={selectedDocent?.id || ""}
+                                onChange={e => setSelectedDocent(docenten.find(d => d.id === parseInt(e.target.value)))}>
+                                <option value="">Selecteer een docent</option>
+                                {docenten.map(d => (
+                                    <option key={d.id} value={d.id}>
+                                        {d.voornaam} {d.achternaam}
+                                    </option>
+                                ))}
+                            </select>
 
-            {/* Koppelformulier */}
-            <div className="card">
-                <h2>Docent koppelen</h2>
-                <form onSubmit={handleSubmit}>
-                    <select
-                        value={selectedDocent?.id || ""}
-                        onChange={e =>
-                            setSelectedDocent(
-                                docenten.find(d => d.id === parseInt(e.target.value))
-                            )
-                        }
-                    >
-                        <option value="">Selecteer een docent</option>
-                        {docenten.map(d => (
-                            <option key={d.id} value={d.id}>
-                                {d.voornaam} {d.achternaam}
-                            </option>
-                        ))}
-                    </select>
+                            <select
+                                value={selectedVak?.id || ""}
+                                onChange={e => setSelectedVak(vakken.find(v => v.id === parseInt(e.target.value)))}>
+                                <option value="">Selecteer een vak</option>
+                                {vakken.map(v => (
+                                    <option key={v.id} value={v.id}>{v.vakNaam}</option>
+                                ))}
+                            </select>
 
-                    <select
-                        value={selectedVak?.id || ""}
-                        onChange={e =>
-                            setSelectedVak(
-                                vakken.find(v => v.id === parseInt(e.target.value))
-                            )
-                        }
-                    >
-                        <option value="">Selecteer een vak</option>
-                        {vakken.map(v => (
-                            <option key={v.id} value={v.id}>
-                                {v.vakNaam}
-                            </option>
-                        ))}
-                    </select>
-
-                    <select
-                        value={selectedKlas?.klasId || ""}
-                        onChange={e =>
-                            setSelectedKlas(
-                                klassen.find(k => k.klasId === parseInt(e.target.value))
-                            )
-                        }
-                    >
-                        <option value="">Selecteer een klas</option>
-                        {klassen.map(k => (
-                            <option key={k.klasId} value={k.klasId}>
-                                {k.klasNaam}
-                            </option>
-                        ))}
-                    </select>
-
-                    <button type="submit">Koppel</button>
-                </form>
-            </div>
+                            <select
+                                value={selectedKlas?.klasId || ""}
+                                onChange={e => setSelectedKlas(klassen.find(k => k.klasId === parseInt(e.target.value)))}>
+                                <option value="">Selecteer een klas</option>
+                                {klassen.map(k => (
+                                    <option key={k.klasId} value={k.klasId}>{k.klasNaam}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div><button type="submit">Koppel</button></div>
+                    </form>
+                </div>
+            )}
         </div>
     );
 };
 
 export default DocentKoppelenEnOverzicht;
+
