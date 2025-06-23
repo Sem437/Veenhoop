@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import "../../../css/ToetsMaken.css";
+import "../../../css/toetsmaken.css";
 
 const ToetsMaken = () => {
     const [vakken, setVakken] = useState([]);
