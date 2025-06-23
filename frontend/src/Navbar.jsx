@@ -41,6 +41,12 @@ const Navbar = () => {
                     </>
 
                 )}
+
+                {isAuthenticated() && getRoles().includes('Administrator') && (
+                    <>
+                        <Link to="/Rollen">Rollen</Link>                        
+                    </>
+                )}
             </div>            
             <div className="nav-rechts">
                 {isAuthenticated() ? (
