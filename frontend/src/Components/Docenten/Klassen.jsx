@@ -28,7 +28,7 @@ const KlassenTable = () => {
                     <tr key={klas.klasId}>
                         <td>{klas.klasNaam}</td>
                         <td>{klas.studenten.length}</td>
-                        <td><a href={`/KlassenWijzigen/${klas.klasId}`}>Studenten toevegen</a></td>
+                        <td><a href={`/KlassenWijzigen/${klas.klasId}`}>Studenten toevoegen</a></td>
                     </tr>
                 ))}
             </tbody>
