@@ -15,6 +15,7 @@ import DocentKlassen from './Components/Docenten/Klassen'
 import DocentKlassenWijzigen from './Components/Docenten/KlassenWijzigen'
 import DocentToets from './Components/Docenten/Toetsen/ToetsMaken'
 import AdminAanmakenRollen from './Components/Administrator/Rol'
+import AdminAanmakenDocent from './Components/Administrator/DocentMaken'
 
 // 👇 functie om payload van JWT te decoden zonder externe lib
 function parseJwt(token) {
@@ -101,7 +102,10 @@ function App() {
 
           {/* Aministrator routes */}
           {roles.includes('Administrator') && (
-            <Route path="/Rollen" element={<ProtectedRoute><AdminAanmakenRollen /></ProtectedRoute>} />
+            <>
+              <Route path="/Rollen" element={<ProtectedRoute><AdminAanmakenRollen /></ProtectedRoute>} />
+              <Route path="/Docentaanmaken" element={<ProtectedRoute><AdminAanmakenDocent /></ProtectedRoute>} />        
+            </>
           )}
         </Routes>
       </div>
